@@ -1,25 +1,41 @@
-import React from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import Coconut from './model/Coconut';
+import { Canvas, useFrame } from "@react-three/fiber";
+import Coconut from "./model/Coconut";
+import CameraController from "./CameraController";
+import {
+  Environment,
+  OrbitControls,
+  PerspectiveCamera,
+} from "@react-three/drei";
+import { useRef } from "react";
 
 const CoconutScene = () => {
-    return (
-        
-   <Canvas camera={{ position: [0, 1, 5], fov: 45 }}>
-        <ambientLight intensity={2} />
+  const cameraRef = useRef(null);
 
-        <directionalLight
-          position={[5, 5, 5]}
-          intensity={3}
-        />
-
-        <Coconut />
-
-        <OrbitControls />
-      </Canvas>
-        
-    );
+  useFrame(() => {
+    if (cameraRef.current) {
+      // console.log("Camera Position:", cameraRef.current.position);
+      cameraRef.current.lookAt(0, 0, 0);
+    }
+  });
+  return (
+    <>
+      <PerspectiveCamera
+        ref={cameraRef}
+        fov={45}
+        near={0.1}
+        far={1000}
+        makeDefault
+        position={[-2.9, 8.3, -3.4]}
+      />
+      <ambientLight intensity={1} />
+      <Environment preset="night" />
+      <directionalLight position={[-15, 5, 5]} intensity={3} />
+      <axesHelper args={[500]} />
+      <Coconut />
+      {/* <OrbitControls /> */}
+      {/* <CameraController /> */}
+    </>
+  );
 };
 
 export default CoconutScene;
