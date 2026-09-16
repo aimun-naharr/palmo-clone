@@ -1,12 +1,15 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import CoconutScene from "./components/coconut-scene";
 import gsap from "gsap";
 import { ReactLenis } from "lenis/react";
 import { Canvas } from "@react-three/fiber";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+gsap.registerPlugin(ScrollTrigger);
 
 function App() {
   const lenisRef = useRef();
+  const [animProgress, setAnimProgress] = useState(0);
 
   useEffect(() => {
     function update(time) {
@@ -19,14 +22,29 @@ function App() {
     return () => gsap.ticker.remove(update);
   }, []);
 
+  useEffect(() => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: ".coconut-scene",
+        start: "top top",
+        end: "bottom bottom",
+        scrub: true,
+        pin: true,
+        onUpdate: (self) => {
+          setAnimProgress(self.progress);
+        },
+      },
+    });
+  }, []);
+
   return (
-    <main className=" w-full border-2 ">
+    <main className=" w-full border-2 coconut-scene">
       <ReactLenis root options={{ autoRaf: false }} ref={lenisRef} />
       {/* <h1 className='text-red-400'>Coconut Scene</h1> */}
 
       <div className=" fixed w-full h-screen  model-section">
         <Canvas>
-          <CoconutScene />
+          <CoconutScene progress={animProgress} />
         </Canvas>
       </div>
       <section>

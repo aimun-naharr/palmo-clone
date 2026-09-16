@@ -6,9 +6,10 @@ import {
   OrbitControls,
   PerspectiveCamera,
 } from "@react-three/drei";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
-const CoconutScene = () => {
+const CoconutScene = ({ progress }) => {
+  console.log("progress", progress);
   const cameraRef = useRef(null);
 
   useFrame(() => {
@@ -17,6 +18,24 @@ const CoconutScene = () => {
       cameraRef.current.lookAt(0, 0, 0);
     }
   });
+
+  const rotateCamera = () => {
+    //20% progress
+    const rotateProg = progress * 0.2;
+    const startPosition = [-2.9, 8.3, -3.4];
+    const endPosition = [0, 0, 0.3];
+    const newPosition = startPosition.map(
+      (start, index) => start + (endPosition[index] - start) * progress,
+    );
+    if (cameraRef.current) {
+      // cameraRef.current.position.set(...newPosition);
+    }
+  };
+
+  // useEffect(() => {
+  //   // rotateCamera();
+  // }, []);
+
   return (
     <>
       <PerspectiveCamera
