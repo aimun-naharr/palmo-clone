@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ReactLenis } from "lenis/react";
 import { Canvas } from "@react-three/fiber";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import HeroSection from "./components/hero";
 gsap.registerPlugin(ScrollTrigger);
 
 function App() {
@@ -22,23 +23,26 @@ function App() {
     return () => gsap.ticker.remove(update);
   }, []);
 
-  useEffect(() => {
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: ".coconut-scene",
-        start: "top top",
-        end: "bottom bottom",
-        scrub: true,
-        pin: true,
-        onUpdate: (self) => {
-          setAnimProgress(self.progress);
-        },
+useEffect(() => {
+  const ctx = gsap.context(() => {
+    ScrollTrigger.create({
+      trigger: ".coconut-scene",
+      start: "top top",
+      end: "bottom bottom",
+      scrub: true,
+      // pin: true,
+
+      onUpdate: (self) => {
+        setAnimProgress(self.progress);
       },
     });
-  }, []);
+  });
+
+  return () => ctx.revert();
+}, []);
 
   return (
-    <main className=" w-full border-2 coconut-scene">
+    <main className=" w-full border-2 coconut-scene bg-background">
       <ReactLenis root options={{ autoRaf: false }} ref={lenisRef} />
       {/* <h1 className='text-red-400'>Coconut Scene</h1> */}
 
@@ -47,21 +51,19 @@ function App() {
           <CoconutScene progress={animProgress} />
         </Canvas>
       </div>
-      <section>
-        <h1>Section 1</h1>
-      </section>
+     <HeroSection/>
       <section>
         <h1>Section 2</h1>
       </section>
       <section>
         <h1>Section 3</h1>
       </section>
-      <section>
+      {/* <section>
         <h1>Section 4</h1>
       </section>
       <section>
         <h1>Section 5</h1>
-      </section>
+      </section> */}
     </main>
   );
 }

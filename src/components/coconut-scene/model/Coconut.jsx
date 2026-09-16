@@ -1,12 +1,14 @@
 import React, { useRef } from "react";
 import { useGLTF } from "@react-three/drei";
+import { Center } from "@react-three/drei";
 
 export default function Model(props) {
   const { nodes, materials } = useGLTF("/coconut.glb");
   return (
-    <group
+  <Center>
+      <group
       //   rotation={[3, -2.9, -0.2]}
-      scale={[25, 25, 25]}
+      scale={[23, 23, 23]}
       {...props}
       dispose={null}
     >
@@ -41,6 +43,7 @@ export default function Model(props) {
         material={materials["dalam kelapa.001"]}
       />
     </group>
+  </Center>
   );
 }
 
