@@ -44,9 +44,9 @@ const moveCameraHorizontal = () => {
 };
 
   useEffect(() => {
-    moveCameraHorizontal()
+    // moveCameraHorizontal()
     // rotateCameraX();
-  }, [progress]);
+  }, []);
 
   return (
     <>
@@ -62,7 +62,7 @@ const moveCameraHorizontal = () => {
       <Environment preset="night" />
       <directionalLight position={[-15, 5, 5]} intensity={3} />
       {/* <axesHelper args={[500]} /> */}
-      <Coconut />
+      <Coconut progress={progress}/>
       {/* <OrbitControls /> */}
       {/* <CameraController /> */}
     </>

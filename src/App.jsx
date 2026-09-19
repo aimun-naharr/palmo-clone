@@ -42,10 +42,10 @@ useEffect(() => {
 }, []);
 
   return (
-    <main className=" w-full border-2 coconut-scene bg-background">
+    <main className=" w-full  coconut-scene bg-background">
       <ReactLenis root options={{ autoRaf: false }} ref={lenisRef} />
       {/* <h1 className='text-red-400'>Coconut Scene</h1> */}
-
+<div className="h-20"/>
       <div className=" fixed w-full h-screen  model-section">
         <Canvas>
           <CoconutScene progress={animProgress} />
