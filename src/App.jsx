@@ -6,6 +6,7 @@ import { ReactLenis } from "lenis/react";
 import { Canvas } from "@react-three/fiber";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroSection from "./components/hero";
+import HeroCoconutTree from "./components/HeroCoconutTree";
 gsap.registerPlugin(ScrollTrigger);
 
 function App() {
@@ -23,47 +24,52 @@ function App() {
     return () => gsap.ticker.remove(update);
   }, []);
 
-useEffect(() => {
-  const ctx = gsap.context(() => {
-    ScrollTrigger.create({
-      trigger: ".coconut-scene",
-      start: "top top",
-      end: "bottom bottom",
-      scrub: true,
-      // pin: true,
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        trigger: ".coconut-scene",
+        start: "top top",
+        end: "bottom bottom",
+        scrub: true,
+        // pin: true,
 
-      onUpdate: (self) => {
-        setAnimProgress(self.progress);
-      },
+        onUpdate: (self) => {
+          setAnimProgress(self.progress);
+        },
+      });
     });
-  });
 
-  return () => ctx.revert();
-}, []);
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <main className=" w-full  coconut-scene bg-background">
-      <ReactLenis root options={{ autoRaf: false }} ref={lenisRef} />
-      {/* <h1 className='text-red-400'>Coconut Scene</h1> */}
-<div className="h-20"/>
-      <div className=" fixed w-full h-screen  model-section">
-        <Canvas>
-          <CoconutScene progress={animProgress} />
-        </Canvas>
+    <main className="relative border">
+      <div className="w-[550px] absolute -right-10 -rotate-40 top-24">
+        <HeroCoconutTree />
       </div>
-     <HeroSection/>
-      <section>
-        <h1>Section 2</h1>
-      </section>
-      <section>
-        <h1>Section 3</h1>
-      </section>
-      {/* <section>
+      <div className=" w-full  coconut-scene bg-background overflow-x-hidden center-layout">
+        <ReactLenis root options={{ autoRaf: false }} ref={lenisRef} />
+        {/* <h1 className='text-red-400'>Coconut Scene</h1> */}
+        <div className="h-20" />
+        <div className=" fixed w-full h-screen  model-section">
+          <Canvas>
+            <CoconutScene progress={animProgress} />
+          </Canvas>
+        </div>
+        <HeroSection />
+        <section>
+          <h1>Section 2</h1>
+        </section>
+        <section>
+          <h1>Section 3</h1>
+        </section>
+        {/* <section>
         <h1>Section 4</h1>
       </section>
       <section>
         <h1>Section 5</h1>
       </section> */}
+      </div>
     </main>
   );
 }

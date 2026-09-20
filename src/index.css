@@ -4,7 +4,7 @@
   :root {
     --text: #6b6375;
     --text-h: #08060d;
-    --bg: #F8F8F0;
+    --bg: #f8f8f0;
     --border: #e5e4e7;
     --code-bg: #f4f3ec;
     --accent: #aa3bff;
@@ -17,8 +17,7 @@
     --sans: system-ui, "Segoe UI", Roboto, sans-serif;
     --heading: system-ui, "Segoe UI", Roboto, sans-serif;
     --mono: ui-monospace, Consolas, monospace;
-    --background: #F8F8F0;
-    
+    --background: #f8f8f0;
 
     font: 18px/145% var(--sans);
     letter-spacing: 0.18px;
@@ -35,8 +34,8 @@
     }
   }
 
-  @theme{
-    --color-background:#F8F8F0;
+  @theme {
+    --color-background: #f8f8f0;
     --color-foreground: #463721;
   }
 
@@ -66,16 +65,18 @@
 
   #root {
     /* width: 1126px; */
-    max-width: 90vw;
     width: 100%;
-    margin: 0 auto;
+
     /* text-align: center; */
     /* border-inline: 1px solid var(--border); */
-  
+
     box-sizing: border-box;
   }
+}
 
- 
+.center-layout {
+  max-width: 90vw;
+  margin: 0 auto;
 }
 
 section {
