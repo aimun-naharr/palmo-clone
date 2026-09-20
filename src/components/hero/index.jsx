@@ -12,7 +12,7 @@ const HeroSection = () => {
       <div className="absolute top-[40%] w-[100px] left-1/3">
         <HeroArrow />
       </div>
-      <div className="absolute top-[50%]  left-1/3 font-6 text-foreground">
+      <div className="absolute top-[50%]  left-1/3 font-7 text-foreground">
         <ul className="list-disc">
           <li>Rich in electrolytes</li>
           <li>No Added Sugar</li>

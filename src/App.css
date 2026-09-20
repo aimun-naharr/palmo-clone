@@ -1,59 +1,50 @@
 @font-face {
   font-family: "font-1";
   src: url("/font-1.woff2") format("woff2");
-  
 }
 @font-face {
   font-family: "font-2";
   src: url("/font-2.woff2") format("woff2");
-  
 }
 @font-face {
   font-family: "font-3";
   src: url("/font-3.woff2") format("woff2");
-  
 }
 @font-face {
   font-family: "font-4";
   src: url("/font-4.woff2") format("woff2");
-  
 }
 @font-face {
   font-family: "font-5";
   src: url("/font-5.woff2") format("woff2");
-  
 }
 @font-face {
   font-family: "font-6";
   src: url("/font-6.woff2") format("woff2");
-  
 }
 @font-face {
   font-family: "font-7";
   src: url("/font-7.woff2") format("woff2");
-  
 }
 
-
-
-.font-1{
-    font-family: font-1 , sans-serif;
+.font-1 {
+  font-family: font-1, sans-serif;
 }
-.font-2{
+.font-2 {
   font-family: font-2, sans-serif;
 }
-.font-3{
+.font-3 {
   font-family: font-3, sans-serif;
 }
-.font-4{
+.font-4 {
   font-family: font-4, sans-serif;
 }
-.font-5{
+.font-5 {
   font-family: font-5, sans-serif;
 }
-.font-6{
+.font-6 {
   font-family: font-6, sans-serif;
 }
-.font-6{
+.font-7 {
   font-family: font-7, sans-serif;
 }
