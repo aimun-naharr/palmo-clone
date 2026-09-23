@@ -43,19 +43,20 @@ function App() {
   }, []);
 
   return (
-    <main className="relative border">
+    <main className="relative border overflow-x-hidden">
+      <div className=" fixed w-full h-screen  model-section">
+        <Canvas>
+          <CoconutScene progress={animProgress} />
+        </Canvas>
+      </div>
+      <ReactLenis root options={{ autoRaf: false }} ref={lenisRef} />
       <div className="w-[550px] absolute -right-10 -rotate-40 top-24">
         <HeroCoconutTree />
       </div>
-      <div className=" w-full  coconut-scene bg-background overflow-x-hidden center-layout">
-        <ReactLenis root options={{ autoRaf: false }} ref={lenisRef} />
+      <div className=" w-full  coconut-scene bg-background  center-layout">
         {/* <h1 className='text-red-400'>Coconut Scene</h1> */}
         <div className="h-20" />
-        <div className=" fixed w-full h-screen  model-section">
-          <Canvas>
-            <CoconutScene progress={animProgress} />
-          </Canvas>
-        </div>
+
         <HeroSection />
         <section>
           <h1>Section 2</h1>

@@ -9,7 +9,7 @@ const CoconutScene = ({ progress }) => {
   useFrame(() => {
     if (cameraRef.current) {
       // console.log("Camera Position:", cameraRef.current.position);
-      cameraRef.current.lookAt(-0.5, -2, 0);
+      cameraRef.current.lookAt(-0, 0, 0);
     }
   });
 
