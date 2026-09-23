@@ -25,10 +25,17 @@ export default function Model({ progress, props }) {
     positionX: 0,
     positionY: 0,
     positionZ: 0,
+    topRotationX: 0,
+    topRotationY: 0,
+    topRotationZ: 0,
+    bottomRotationX: 0,
+    bottomRotationY: 0,
+    bottomRotationZ: 0,
   });
 
   const animSequence = () => {
     if (!modelRef.current) return;
+    if (settings.current.manual) return;
 
     const part1Progress = THREE.MathUtils.clamp(progress / 0.2, 0, 1);
 
@@ -68,7 +75,12 @@ export default function Model({ progress, props }) {
     // const splitProgress = THREE.MathUtils.clamp((progress - 0.3) / 0.2, 0, 1);
 
     topRef.current.position.x = THREE.MathUtils.lerp(0, -0.05, part2Progress);
-    topRef.current.rotation.y = THREE.MathUtils.lerp(0, -0.2, part2Progress);
+    bottomRef.current.rotation.x = THREE.MathUtils.lerp(
+      0,
+      -2.83,
+      part2Progress,
+    );
+    topRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.9, part2Progress);
 
     bottomRef.current.position.x = THREE.MathUtils.lerp(0, 0.1, part2Progress);
   };
@@ -94,6 +106,12 @@ export default function Model({ progress, props }) {
     s.positionX = modelRef.current.position.x;
     s.positionY = modelRef.current.position.y;
     s.positionZ = modelRef.current.position.z;
+    s.topRotationX = topRef.current.rotation.x;
+    s.topRotationY = topRef.current.rotation.y;
+    s.topRotationZ = topRef.current.rotation.z;
+    s.bottomRotationX = bottomRef.current.rotation.x;
+    s.bottomRotationY = bottomRef.current.rotation.y;
+    s.bottomRotationZ = bottomRef.current.rotation.z;
 
     gui
       .add(s, "manual")
@@ -104,26 +122,40 @@ export default function Model({ progress, props }) {
       modelRef.current.rotation.set(s.rotationX, s.rotationY, s.rotationZ);
     };
 
+    const applyTopRotation = () => {
+      topRef.current.rotation.set(
+        s.topRotationX,
+        s.topRotationY,
+        s.topRotationZ,
+      );
+    };
+
+    const applyBottomRotation = () => {
+      bottomRef.current.rotation.set(
+        s.bottomRotationX,
+        s.bottomRotationY,
+        s.bottomRotationZ,
+      );
+    };
+
     const applyPosition = () => {
       modelRef.current.position.set(s.positionX, s.positionY, s.positionZ);
     };
 
-    const rotation = gui.addFolder("Rotation");
-    ["rotationX", "rotationY", "rotationZ"].forEach((key) => {
-      rotation
-        .add(s, key, -Math.PI * 2, Math.PI * 2, 0.01)
-        .name(key.slice(-1).toLowerCase())
-        .listen()
-        .onChange(applyRotation);
-    });
-    // const rotationTop = gui.addFolder("Rotation Top");
-    // ["rotationX", "rotationY", "rotationZ"].forEach((key) => {
-    //   rotation
-    //     .add(s, key, -Math.PI * 2, Math.PI * 2, 0.01)
-    //     .name(key.slice(-1).toLowerCase())
-    //     .listen()
-    //     .onChange(applyRotation);
-    // });
+    const addRotationFolder = (label, prefix, apply) => {
+      const folder = gui.addFolder(label);
+      ["X", "Y", "Z"].forEach((axis) => {
+        folder
+          .add(s, `${prefix}${axis}`, -Math.PI * 2, Math.PI * 2, 0.01)
+          .name(axis.toLowerCase())
+          .listen()
+          .onChange(apply);
+      });
+    };
+
+    addRotationFolder("Rotation", "rotation", applyRotation);
+    addRotationFolder("Rotation Top", "topRotation", applyTopRotation);
+    addRotationFolder("Rotation Bottom", "bottomRotation", applyBottomRotation);
 
     const position = gui.addFolder("Position");
     ["positionX", "positionY", "positionZ"].forEach((key) => {
@@ -141,6 +173,8 @@ export default function Model({ progress, props }) {
             console.log(
               `rotation={[${s.rotationX.toFixed(3)}, ${s.rotationY.toFixed(3)}, ${s.rotationZ.toFixed(3)}]}`,
               `position={[${s.positionX.toFixed(3)}, ${s.positionY.toFixed(3)}, ${s.positionZ.toFixed(3)}]}`,
+              `topRotation={[${s.topRotationX.toFixed(3)}, ${s.topRotationY.toFixed(3)}, ${s.topRotationZ.toFixed(3)}]}`,
+              `bottomRotation={[${s.bottomRotationX.toFixed(3)}, ${s.bottomRotationY.toFixed(3)}, ${s.bottomRotationZ.toFixed(3)}]}`,
             ),
         },
         "log",
