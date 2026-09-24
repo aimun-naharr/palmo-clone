@@ -3,10 +3,54 @@ import { useGLTF } from "@react-three/drei";
 import { Center } from "@react-three/drei";
 import * as THREE from "three";
 import GUI from "lil-gui";
+import { useFrame } from "@react-three/fiber";
+import { milkFragment, milkVertex } from "../../../shaders/milk";
 
-const easeInOut = (t) => {
-  return t * t * (3 - 2 * t);
-};
+const fragmentShader = `
+  uniform float uTime;
+
+  varying vec2 vUv;
+  varying vec3 vNormal;
+
+  void main() {
+
+    vec3 baseColor = vec3(1.0, 1.0, 1.0);
+
+    // Simple light
+    float light = dot(
+      normalize(vNormal),
+      normalize(vec3(1.0, 1.0, 1.0))
+    );
+
+    light = light * 0.5 + 0.5;
+
+    gl_FragColor = vec4(
+      baseColor * light,
+      1.0
+    );
+  }
+`;
+
+const vertexShader = `
+  uniform float uTime;
+
+  varying vec2 vUv;
+  varying vec3 vNormal;
+
+  void main() {
+    vUv = uv;
+    vNormal = normal;
+
+    vec3 pos = position;
+
+    // Small wave
+    pos.z += sin(pos.y * 5.0 + uTime * 3.0) * 0.02;
+
+    gl_Position = projectionMatrix
+      * modelViewMatrix
+      * vec4(pos, 1.0);
+  }
+`;
 
 const getProgress = (start, end, progress) => {
   return THREE.MathUtils.clamp(
@@ -22,6 +66,13 @@ export default function Model({ progress, props }) {
   const bottomRef = useRef(null);
   const milk = useRef(null);
   const modelRef = useRef(null);
+  const milkMaterial = useRef(null);
+  const uniforms = useRef({
+    uTime: { value: 0 },
+    uScale: { value: 3.0 }, // size of the swirls (higher = smaller/more)
+    uSwirl: { value: 1.4 }, // how twisted the center is
+    uBump: { value: 1.0 }, // strength of the surface relief
+  });
 
   // When manual is on, the scroll-driven rotation is skipped so the
   // lil-gui sliders keep control of the model.
@@ -39,6 +90,12 @@ export default function Model({ progress, props }) {
     bottomRotationX: 0,
     bottomRotationY: 0,
     bottomRotationZ: 0,
+    milkRotationX: 0,
+    milkRotationY: 0,
+    milkRotationZ: 0,
+    milkPositionX: 0,
+    milkPositionY: 0,
+    milkPositionZ: 0,
   });
 
   const animSequence = () => {
@@ -55,7 +112,7 @@ export default function Model({ progress, props }) {
     // -----------------------------
     // Y rotation
     // -----------------------------
-    modelRef.current.rotation.y = THREE.MathUtils.lerp(-0.97, -1.4, p);
+    modelRef.current.rotation.y = THREE.MathUtils.lerp(-0.97, -1.35, p);
     modelRef.current.rotation.x = THREE.MathUtils.lerp(-2.36, -1.8, p);
 
     // -----------------------------
@@ -81,6 +138,8 @@ export default function Model({ progress, props }) {
     topRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.9, part2Progress);
 
     bottomRef.current.position.x = THREE.MathUtils.lerp(0, 0.1, part2Progress);
+    milk.current.position.x = THREE.MathUtils.lerp(0, -0.069, part2Progress);
+    // milk.current.position.x = THREE.MathUtils.lerp(0, -0.053, part2Progress);
   };
 
   useEffect(() => {
@@ -91,6 +150,11 @@ export default function Model({ progress, props }) {
   // DEBUG GUI
   // -------------------------
 
+  useFrame((state) => {
+    if (!milkMaterial.current) return;
+
+    milkMaterial.current.uniforms.uTime.value = state?.clock.elapsedTime * 0.5;
+  });
   useEffect(() => {
     if (!import.meta.env.DEV) return;
 
@@ -110,6 +174,12 @@ export default function Model({ progress, props }) {
     s.bottomRotationX = bottomRef.current.rotation.x;
     s.bottomRotationY = bottomRef.current.rotation.y;
     s.bottomRotationZ = bottomRef.current.rotation.z;
+    s.milkRotationX = milk.current.rotation.x;
+    s.milkRotationY = milk.current.rotation.y;
+    s.milkRotationZ = milk.current.rotation.z;
+    s.milkPositionX = milk.current.position.x;
+    s.milkPositionY = milk.current.position.y;
+    s.milkPositionZ = milk.current.position.z;
 
     gui
       .add(s, "manual")
@@ -133,6 +203,22 @@ export default function Model({ progress, props }) {
         s.bottomRotationX,
         s.bottomRotationY,
         s.bottomRotationZ,
+      );
+    };
+
+    const applyMilkRotation = () => {
+      milk.current.rotation.set(
+        s.milkRotationX,
+        s.milkRotationY,
+        s.milkRotationZ,
+      );
+    };
+
+    const applyMilkPosition = () => {
+      milk.current.position.set(
+        s.milkPositionX,
+        s.milkPositionY,
+        s.milkPositionZ,
       );
     };
 
@@ -164,6 +250,18 @@ export default function Model({ progress, props }) {
         .onChange(applyPosition);
     });
 
+    addRotationFolder("Rotation Milk", "milkRotation", applyMilkRotation);
+
+    // Milk sits inside the 25x-scaled group, so small values move it a lot.
+    const milkPosition = gui.addFolder("Position Milk");
+    ["milkPositionX", "milkPositionY", "milkPositionZ"].forEach((key) => {
+      milkPosition
+        .add(s, key, -0.5, 0.5, 0.001)
+        .name(key.slice(-1).toLowerCase())
+        .listen()
+        .onChange(applyMilkPosition);
+    });
+
     gui
       .add(
         {
@@ -173,6 +271,8 @@ export default function Model({ progress, props }) {
               `position={[${s.positionX.toFixed(3)}, ${s.positionY.toFixed(3)}, ${s.positionZ.toFixed(3)}]}`,
               `topRotation={[${s.topRotationX.toFixed(3)}, ${s.topRotationY.toFixed(3)}, ${s.topRotationZ.toFixed(3)}]}`,
               `bottomRotation={[${s.bottomRotationX.toFixed(3)}, ${s.bottomRotationY.toFixed(3)}, ${s.bottomRotationZ.toFixed(3)}]}`,
+              `milkRotation={[${s.milkRotationX.toFixed(3)}, ${s.milkRotationY.toFixed(3)}, ${s.milkRotationZ.toFixed(3)}]}`,
+              `milkPosition={[${s.milkPositionX.toFixed(3)}, ${s.milkPositionY.toFixed(3)}, ${s.milkPositionZ.toFixed(3)}]}`,
             ),
         },
         "log",
@@ -184,6 +284,8 @@ export default function Model({ progress, props }) {
 
   //scroll rotation=[-2.36, -1.44, -0.97]
   //scroll rotation=[-1.59, -1.44,-0.363]
+
+  //milk positionx=0.065
 
   return (
     <Center>
@@ -200,8 +302,17 @@ export default function Model({ progress, props }) {
           castShadow
           receiveShadow
           geometry={nodes.milk.geometry}
-          material={nodes.milk.material}
-        />
+          // material={nodes.milk.material}
+        >
+          {/* <circleGeometry args={[0.081, 96]} /> */}
+          <shaderMaterial
+            vertexShader={milkVertex}
+            fragmentShader={milkFragment}
+            side={THREE.DoubleSide}
+            ref={milkMaterial}
+            uniforms={uniforms?.current}
+          />
+        </mesh>
         <group ref={topRef}>
           <mesh
             castShadow
