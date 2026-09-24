@@ -1,3 +1,5 @@
+import * as THREE from "three";
+
 const milkNoise = /* glsl */ `
   vec3 mod289(vec3 x){ return x - floor(x * (1.0 / 289.0)) * 289.0; }
   vec2 mod289(vec2 x){ return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -58,19 +60,27 @@ const milkNoise = /* glsl */ `
 
 
 export const milkVertex = `
- varying vec2 vUv;
+  // Disc frame in the mesh's local space (see getMilkDisc). The GLB's own
+  // UVs sit in a corner of a texture atlas, so we derive a centered 0..1
+  // disc UV from the position instead.
+  uniform vec3 uDiscCenter;
+  uniform vec3 uDiscU;
+  uniform vec3 uDiscV;
+  uniform float uDiscRadius;
+
+  varying vec2 vUv;
   varying vec3 vViewPos;
   varying vec3 vT;
   varying vec3 vB;
   varying vec3 vN;
 
   void main() {
-    vUv = uv;
+    vec3 rel = position - uDiscCenter;
+    vUv = vec2(dot(rel, uDiscU), dot(rel, uDiscV)) / uDiscRadius * 0.5 + 0.5;
 
-    // Plane/Circle geometry lies in local XY with +Z as its normal
-    vT = normalize(normalMatrix * vec3(1.0, 0.0, 0.0));
-    vB = normalize(normalMatrix * vec3(0.0, 1.0, 0.0));
-    vN = normalize(normalMatrix * vec3(0.0, 0.0, 1.0));
+    vT = normalize(normalMatrix * uDiscU);
+    vB = normalize(normalMatrix * uDiscV);
+    vN = normalize(normalMatrix * cross(uDiscU, uDiscV));
 
     vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
     vViewPos = mvPos.xyz;
@@ -78,6 +88,25 @@ export const milkVertex = `
   }
 `
 
+
+// Finds the flat disc in a geometry: the thinnest bounding-box axis is the
+// surface normal, the other two span the disc.
+export const getMilkDisc = (geometry) => {
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox;
+  const size = box.getSize(new THREE.Vector3()).toArray();
+  const n = size.indexOf(Math.min(...size));
+  const axis = (i) => new THREE.Vector3().setComponent(i, 1);
+
+  return {
+    uDiscCenter: { value: box.getCenter(new THREE.Vector3()) },
+    uDiscU: { value: axis((n + 1) % 3) },
+    uDiscV: { value: axis((n + 2) % 3) },
+    uDiscRadius: {
+      value: Math.max(size[(n + 1) % 3], size[(n + 2) % 3]) / 2,
+    },
+  };
+};
 
 export const milkFragment = `
 uniform float uTime;
