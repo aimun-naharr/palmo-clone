@@ -1,64 +1,5 @@
 import * as THREE from "three";
 
-const milkNoise = /* glsl */ `
-  vec3 mod289(vec3 x){ return x - floor(x * (1.0 / 289.0)) * 289.0; }
-  vec2 mod289(vec2 x){ return x - floor(x * (1.0 / 289.0)) * 289.0; }
-  vec3 permute(vec3 x){ return mod289(((x * 34.0) + 1.0) * x); }
-
-  // 2D simplex noise (Ashima Arts)
-  float snoise(vec2 v){
-    const vec4 C = vec4(0.211324865405187, 0.366025403784439,
-                       -0.577350269189626, 0.024390243902439);
-    vec2 i  = floor(v + dot(v, C.yy));
-    vec2 x0 = v - i + dot(i, C.xx);
-    vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-    vec4 x12 = x0.xyxy + C.xxzz;
-    x12.xy -= i1;
-    i = mod289(i);
-    vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
-    vec3 m = max(0.5 - vec3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0);
-    m = m * m; m = m * m;
-    vec3 x = 2.0 * fract(p * C.www) - 1.0;
-    vec3 h = abs(x) - 0.5;
-    vec3 ox = floor(x + 0.5);
-    vec3 a0 = x - ox;
-    m *= 1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h);
-    vec3 g;
-    g.x  = a0.x  * x0.x   + h.x  * x0.y;
-    g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-    return 130.0 * dot(m, g);
-  }
-
-  float fbm(vec2 p){
-    float f = 0.0;
-    float a = 0.5;
-    for (int i = 0; i < 4; i++) {
-      f += a * snoise(p);
-      p *= 2.02;
-      a *= 0.5;
-    }
-    return f;
-  }
-
-  // Slowly rotating, domain-warped field -> creamy ribbons
-  float milkField(vec2 uv, float t){
-    vec2 p = (uv - 0.5) * uScale;
-
-    // swirl: stronger twist near the center
-    float r = length(p);
-    float ang = t * 0.12 + uSwirl / (1.0 + r * r);
-    float s = sin(ang), c = cos(ang);
-    p = mat2(c, -s, s, c) * p;
-
-    vec2 q = vec2(fbm(p + vec2(0.0, t * 0.10)),
-                  fbm(p + vec2(5.2, 1.3) - t * 0.08));
-    vec2 w = vec2(fbm(p + 2.5 * q + vec2(1.7, 9.2) + t * 0.12),
-                  fbm(p + 2.5 * q + vec2(8.3, 2.8) - t * 0.10));
-    return fbm(p + 2.0 * w);
-  }
-`;
-
-
 export const milkVertex = `
   // Disc frame in the mesh's local space (see getMilkDisc). The GLB's own
   // UVs sit in a corner of a texture atlas, so we derive a centered 0..1
@@ -108,10 +49,20 @@ export const getMilkDisc = (geometry) => {
   };
 };
 
+// Same projection as milkVertex, on the CPU: local-space point -> 0..1 disc UV.
+// Used to feed pointer hits into the ripple simulation.
+export const getMilkDiscUv = (disc, localPoint) => {
+  const rel = localPoint.clone().sub(disc.uDiscCenter.value);
+  const r = disc.uDiscRadius.value;
+  return new THREE.Vector2(
+    rel.dot(disc.uDiscU.value) / r * 0.5 + 0.5,
+    rel.dot(disc.uDiscV.value) / r * 0.5 + 0.5,
+  );
+};
+
 export const milkFragment = `
-uniform float uTime;
-  uniform float uScale;
-  uniform float uSwirl;
+  // Normal map from the Shadertoy fluid simulation (buffers/milkSimulation)
+  uniform sampler2D uFluid;
   uniform float uBump;
 
   varying vec2 vUv;
@@ -120,26 +71,20 @@ uniform float uTime;
   varying vec3 vB;
   varying vec3 vN;
 
-  ${milkNoise}
-
   void main() {
     // Radial distance: 0 at center, 1 at the edge of the disc
     float d = length(vUv - 0.5) * 2.0;
     if (d > 1.0) discard; // lets you use a PlaneGeometry too
 
-    float t = uTime;
+    // --- Normal: same reconstruction as the Shadertoy image pass ----------
+    vec4 buff = texture2D(uFluid, vUv) * 2.0 - 1.0;
+    vec2 nxy = buff.xy * uBump;
+    float nz = sqrt(1.0 - clamp(dot(nxy, nxy), 0.0, 1.0));
+    vec3 nLocal = normalize(vec3(nxy, nz));
 
-    // --- Height + normal via finite differences --------------------------
-    float e  = 0.0025;
-    float h  = milkField(vUv, t);
-    float hx = milkField(vUv + vec2(e, 0.0), t);
-    float hy = milkField(vUv + vec2(0.0, e), t);
+    // Flatten the ripples toward the rim (liquid settles at the wall)
+    nLocal = normalize(mix(nLocal, vec3(0.0, 0.0, 1.0), smoothstep(0.75, 1.0, d)));
 
-    // Flatten the bumps toward the rim (liquid settles at the wall)
-    float bump = uBump * (1.0 - smoothstep(0.75, 1.0, d));
-    vec3 nLocal = normalize(vec3(-(hx - h) / e * bump * 0.02,
-                                 -(hy - h) / e * bump * 0.02,
-                                 1.0));
     vec3 N = normalize(vT * nLocal.x + vB * nLocal.y + vN * nLocal.z);
     vec3 V = normalize(-vViewPos);
 
@@ -147,11 +92,7 @@ uniform float uTime;
     vec3 L = normalize(vec3(-0.35, 0.75, 0.55));
     vec3 H = normalize(L + V);
 
-    // --- Albedo: soft grey milk + bright cream ribbons --------------------
-    float cream = smoothstep(0.02, 0.32, h);
-    vec3 milk      = vec3(1.0, 1.0, 1.0);
-    vec3 creamCol  = vec3(1.00, 1.0, 1.0);
-    vec3 albedo    = mix(milk, creamCol, cream);
+    vec3 albedo = vec3(1.0);
 
     // --- Lighting ---------------------------------------------------------
     float ndl  = dot(N, L);
@@ -159,9 +100,7 @@ uniform float uTime;
     diff = diff * diff;
 
     float ndh  = max(dot(N, H), 0.0);
-    float specSharp = pow(ndh, 90.0) * 0.55;
-    float specSoft  = pow(ndh, 14.0) * 0.18;
-    float spec = (specSharp + specSoft) * (0.4 + 0.6 * cream);
+    float spec = pow(ndh, 90.0) * 0.55 + pow(ndh, 14.0) * 0.18;
 
     float ndv = max(dot(N, V), 0.0);
     float fresnel = pow(1.0 - ndv, 3.0);

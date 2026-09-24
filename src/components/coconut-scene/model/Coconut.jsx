@@ -1,56 +1,16 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { Center } from "@react-three/drei";
 import * as THREE from "three";
 import GUI from "lil-gui";
 import { useFrame } from "@react-three/fiber";
-import { milkFragment, milkVertex } from "../../../shaders/milk";
-
-const fragmentShader = `
-  uniform float uTime;
-
-  varying vec2 vUv;
-  varying vec3 vNormal;
-
-  void main() {
-
-    vec3 baseColor = vec3(1.0, 1.0, 1.0);
-
-    // Simple light
-    float light = dot(
-      normalize(vNormal),
-      normalize(vec3(1.0, 1.0, 1.0))
-    );
-
-    light = light * 0.5 + 0.5;
-
-    gl_FragColor = vec4(
-      baseColor * light,
-      1.0
-    );
-  }
-`;
-
-const vertexShader = `
-  uniform float uTime;
-
-  varying vec2 vUv;
-  varying vec3 vNormal;
-
-  void main() {
-    vUv = uv;
-    vNormal = normal;
-
-    vec3 pos = position;
-
-    // Small wave
-    pos.z += sin(pos.y * 5.0 + uTime * 3.0) * 0.02;
-
-    gl_Position = projectionMatrix
-      * modelViewMatrix
-      * vec4(pos, 1.0);
-  }
-`;
+import {
+  getMilkDisc,
+  getMilkDiscUv,
+  milkFragment,
+  milkVertex,
+} from "../../../shaders/milk";
+import { createMilkSimulation } from "../../../shaders/buffers/milkSimulation";
 
 const getProgress = (start, end, progress) => {
   return THREE.MathUtils.clamp(
@@ -67,12 +27,23 @@ export default function Model({ progress, props }) {
   const milk = useRef(null);
   const modelRef = useRef(null);
   const milkMaterial = useRef(null);
-  const uniforms = useRef({
-    uTime: { value: 0 },
-    uScale: { value: 3.0 }, // size of the swirls (higher = smaller/more)
-    uSwirl: { value: 1.4 }, // how twisted the center is
-    uBump: { value: 1.0 }, // strength of the surface relief
-  });
+
+  // Offscreen Shadertoy buffers (ripples -> fluid -> turbulence)
+  const milkSim = useMemo(() => createMilkSimulation(512), []);
+  useEffect(() => () => milkSim.dispose(), [milkSim]);
+
+  const milkDisc = useMemo(
+    () => getMilkDisc(nodes.milk.geometry),
+    [nodes.milk.geometry],
+  );
+  const uniforms = useMemo(
+    () => ({
+      ...milkDisc,
+      uFluid: { value: milkSim.texture },
+      uBump: { value: 8.0 }, // strength of the ripple relief
+    }),
+    [milkDisc, milkSim],
+  );
 
   // When manual is on, the scroll-driven rotation is skipped so the
   // lil-gui sliders keep control of the model.
@@ -104,7 +75,7 @@ export default function Model({ progress, props }) {
 
     const part1Progress = getProgress(3, 24, progress);
 
-    const part2Progress = getProgress(24, 40, progress);
+    const part2Progress = getProgress(24, 50, progress);
 
     // Smooth overall progress
     const p = THREE.MathUtils.smoothstep(part1Progress, 0, 1);
@@ -129,7 +100,7 @@ export default function Model({ progress, props }) {
 
     // const splitProgress = THREE.MathUtils.clamp((progress - 0.3) / 0.2, 0, 1);
 
-    topRef.current.position.x = THREE.MathUtils.lerp(0, -0.05, part2Progress);
+    // topRef.current.position.x = THREE.MathUtils.lerp(0, -0.05, part2Progress);
     bottomRef.current.rotation.x = THREE.MathUtils.lerp(
       0,
       -2.83,
@@ -137,8 +108,8 @@ export default function Model({ progress, props }) {
     );
     topRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.9, part2Progress);
 
-    bottomRef.current.position.x = THREE.MathUtils.lerp(0, 0.1, part2Progress);
-    milk.current.position.x = THREE.MathUtils.lerp(0, -0.069, part2Progress);
+    bottomRef.current.position.x = THREE.MathUtils.lerp(0, 0.7, part2Progress);
+    // milk.current.position.x = THREE.MathUtils.lerp(0, -0.069, part2Progress);
     // milk.current.position.x = THREE.MathUtils.lerp(0, -0.053, part2Progress);
   };
 
@@ -150,11 +121,17 @@ export default function Model({ progress, props }) {
   // DEBUG GUI
   // -------------------------
 
-  useFrame((state) => {
-    if (!milkMaterial.current) return;
-
-    milkMaterial.current.uniforms.uTime.value = state?.clock.elapsedTime * 0.5;
+  useFrame((state, delta) => {
+    milkSim.update(state.gl, state.clock.elapsedTime, delta);
+    // The fluid buffer ping-pongs, so rebind the freshly written one
+    if (milkMaterial.current)
+      milkMaterial.current.uniforms.uFluid.value = milkSim.texture;
   });
+
+  const onMilkPointer = (e) => {
+    const local = milk.current.worldToLocal(e.point.clone());
+    milkSim.setPointer(getMilkDiscUv(milkDisc, local));
+  };
   useEffect(() => {
     if (!import.meta.env.DEV) return;
 
@@ -297,22 +274,6 @@ export default function Model({ progress, props }) {
         ref={modelRef}
         dispose={null}
       >
-        <mesh
-          ref={milk}
-          castShadow
-          receiveShadow
-          geometry={nodes.milk.geometry}
-          // material={nodes.milk.material}
-        >
-          {/* <circleGeometry args={[0.081, 96]} /> */}
-          <shaderMaterial
-            vertexShader={milkVertex}
-            fragmentShader={milkFragment}
-            side={THREE.DoubleSide}
-            ref={milkMaterial}
-            uniforms={uniforms?.current}
-          />
-        </mesh>
         <group ref={topRef}>
           <mesh
             castShadow
@@ -326,6 +287,25 @@ export default function Model({ progress, props }) {
             geometry={nodes.Roundcube001_1.geometry}
             material={materials["dalam kelapa.001"]}
           />
+          <mesh
+            ref={milk}
+            castShadow
+            receiveShadow
+            geometry={nodes.milk.geometry}
+            // material={nodes.milk.material}
+            onPointerMove={onMilkPointer}
+            position={[-0.016, 0, 0]}
+            onPointerOut={() => milkSim.setPointer(null)}
+          >
+            {/* <circleGeometry args={[0.081, 96]} /> */}
+            <shaderMaterial
+              vertexShader={milkVertex}
+              fragmentShader={milkFragment}
+              side={THREE.DoubleSide}
+              ref={milkMaterial}
+              uniforms={uniforms}
+            />
+          </mesh>
         </group>
         <group ref={bottomRef}>
           <mesh

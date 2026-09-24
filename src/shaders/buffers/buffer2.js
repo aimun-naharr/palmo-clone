@@ -44,7 +44,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     baseColor = baseColor*0.5+0.5;
 
-    if(iFrame < 10 || texture(iChannel2, vec2(32.5/256.0, 0.5) ).x > 0.5)
+    // Shadertoy read the keyboard here (space = reset); iReset replaces it
+    if(iFrame < 10 || iReset > 0.5)
     {
     	fragColor =  baseColor;
     }

@@ -36,7 +36,7 @@ float brush(vec2 uv, float tile)
     	mouseRipple = 0.0;
     }
 
-    float dropRipple;
+    float dropRipple = 0.0;
 
     const int iter = 10;
     for (int i = 0; i < iter; i++)
