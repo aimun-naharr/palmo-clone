@@ -8,6 +8,14 @@ const easeInOut = (t) => {
   return t * t * (3 - 2 * t);
 };
 
+const getProgress = (start, end, progress) => {
+  return THREE.MathUtils.clamp(
+    (progress - start / 100) / ((end - start) / 100),
+    0,
+    1,
+  );
+};
+
 export default function Model({ progress, props }) {
   const { nodes, materials } = useGLTF("/coconut.glb");
   const topRef = useRef(null);
@@ -37,19 +45,9 @@ export default function Model({ progress, props }) {
     if (!modelRef.current) return;
     if (settings.current.manual) return;
 
-    const part1Progress = THREE.MathUtils.clamp(progress / 0.2, 0, 1);
+    const part1Progress = getProgress(3, 24, progress);
 
-    const part2Progress = THREE.MathUtils.clamp((progress - 0.2) / 0.2, 0, 1);
-
-    const part3Progress = THREE.MathUtils.clamp((progress - 0.4) / 0.2, 0, 1);
-
-    const part4Progress = THREE.MathUtils.clamp((progress - 0.6) / 0.2, 0, 1);
-
-    const part5Progress = THREE.MathUtils.clamp((progress - 0.8) / 0.2, 0, 1);
-    const smoothPart2 = THREE.MathUtils.smoothstep(part2Progress, 0, 1);
-    const yProgress = THREE.MathUtils.clamp(part1Progress, 0, 1);
-
-    const zProgress = THREE.MathUtils.clamp((part1Progress - 0.5) / 0.5, 0, 1);
+    const part2Progress = getProgress(24, 40, progress);
 
     // Smooth overall progress
     const p = THREE.MathUtils.smoothstep(part1Progress, 0, 1);
@@ -57,8 +55,8 @@ export default function Model({ progress, props }) {
     // -----------------------------
     // Y rotation
     // -----------------------------
-    modelRef.current.rotation.y = THREE.MathUtils.lerp(-0.97, -1.01, p);
-    modelRef.current.rotation.x = THREE.MathUtils.lerp(-2.36, -1.7, p);
+    modelRef.current.rotation.y = THREE.MathUtils.lerp(-0.97, -1.4, p);
+    modelRef.current.rotation.x = THREE.MathUtils.lerp(-2.36, -1.8, p);
 
     // -----------------------------
     // Z starts halfway through
