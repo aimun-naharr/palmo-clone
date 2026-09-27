@@ -4,7 +4,7 @@ import HeroArrow from "../HeroArrow";
 
 const HeroSection = () => {
   return (
-    <section className="w-full mt-[4vw]  relative">
+    <section className="w-full mt-[4vw] h-[80vh]  relative">
       <h1 className="font-5 flex flex-col gap-[2.5vw] uppercase text-[9vw]  tracking-tighter text-foreground">
         <span>Paradise in</span> <br />
         <span>Every sip</span>
