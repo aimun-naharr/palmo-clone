@@ -73,9 +73,9 @@ export default function Model({ progress, props }) {
     if (!modelRef.current) return;
     if (settings.current.manual) return;
 
-    const part1Progress = getProgress(3, 24, progress);
+    const part1Progress = getProgress(3, 25, progress);
 
-    const part2Progress = getProgress(24, 50, progress);
+    const part2Progress = getProgress(25, 60, progress);
 
     // Smooth overall progress
     const p = THREE.MathUtils.smoothstep(part1Progress, 0, 1);
@@ -101,14 +101,10 @@ export default function Model({ progress, props }) {
     // const splitProgress = THREE.MathUtils.clamp((progress - 0.3) / 0.2, 0, 1);
 
     // topRef.current.position.x = THREE.MathUtils.lerp(0, -0.05, part2Progress);
-    bottomRef.current.rotation.x = THREE.MathUtils.lerp(
-      0,
-      -2.83,
-      part2Progress,
-    );
-    topRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.9, part2Progress);
+    topRef.current.rotation.x = THREE.MathUtils.lerp(0, 3.83, part2Progress);
+    bottomRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.9, part2Progress);
 
-    bottomRef.current.position.x = THREE.MathUtils.lerp(0, 0.7, part2Progress);
+    topRef.current.position.x = THREE.MathUtils.lerp(0, 0.7, part2Progress);
     // milk.current.position.x = THREE.MathUtils.lerp(0, -0.069, part2Progress);
     // milk.current.position.x = THREE.MathUtils.lerp(0, -0.053, part2Progress);
   };
@@ -274,7 +270,7 @@ export default function Model({ progress, props }) {
         ref={modelRef}
         dispose={null}
       >
-        <group ref={topRef}>
+        <group ref={bottomRef}>
           <mesh
             castShadow
             receiveShadow
@@ -307,7 +303,7 @@ export default function Model({ progress, props }) {
             />
           </mesh>
         </group>
-        <group ref={bottomRef}>
+        <group ref={topRef}>
           <mesh
             castShadow
             receiveShadow
