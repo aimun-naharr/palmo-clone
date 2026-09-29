@@ -17,7 +17,7 @@ export default function Source() {
         </h3>
       </div>
 
-      <p className="font-3 tracking-tight text-2xl text-foreground max-w-[500px] ">
+      <p className="font-3 tracking-tight text-2xl text-foreground max-w-[500px] capitalize font-medium">
         For centuries, coconuts have carried their own perfectly balanced source
         of refreshment.
       </p>

@@ -37,6 +37,8 @@
   @theme {
     --color-background: #f8f8f0;
     --color-foreground: #463721;
+    --color-banana: #fce386;
+    --color-coconut: #684900;
   }
 
   /* @media (prefers-color-scheme: dark) {

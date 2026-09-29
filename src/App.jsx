@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroSection from "./components/hero";
 import HeroCoconutTree from "./components/HeroCoconutTree";
 import Source from "./components/Source";
+import Nutrients from "./components/Nutrients";
 gsap.registerPlugin(ScrollTrigger);
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
 
         <HeroSection />
         <Source />
+        <Nutrients />
         <section className="h-screen">
           <h1>Section 2</h1>
         </section>

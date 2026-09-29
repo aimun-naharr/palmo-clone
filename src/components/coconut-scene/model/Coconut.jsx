@@ -81,7 +81,7 @@ export default function Model({ progress, props }) {
 
     const part1Progress = getProgress(3, 25, progress);
 
-    const part2Progress = getProgress(25, 45, progress);
+    const part2Progress = getProgress(25, 55, progress);
     const part3Progress = getProgress(30, 60, progress);
 
     // Smooth overall progress
@@ -110,11 +110,18 @@ export default function Model({ progress, props }) {
     // topRef.current.position.x = THREE.MathUtils.lerp(0, -0.05, part2Progress);
     topRef.current.rotation.x = THREE.MathUtils.lerp(0, 3.83, part2Progress);
     bottomRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.9, part3Progress);
-    bottomRef.current.position.z = THREE.MathUtils.lerp(
-      0,
-      0.083,
-      part3Progress,
-    );
+    bottomRef.current.rotation.y = THREE.MathUtils.lerp(0, -0.053, part3Progress);
+    bottomRef.current.rotation.z = THREE.MathUtils.lerp(0, -0.20, part3Progress);
+   bottomRef.current.scale.x = THREE.MathUtils.lerp(1, 1.5  , part3Progress);
+bottomRef.current.scale.y = THREE.MathUtils.lerp(1, 1.5 , part3Progress);
+bottomRef.current.scale.z = THREE.MathUtils.lerp(1, 1.5 , part3Progress);
+
+
+    // bottomRef.current.position.z = THREE.MathUtils.lerp(
+    //   0,
+    //   0.083,
+    //   part3Progress,
+    // );
 
     topRef.current.position.x = THREE.MathUtils.lerp(0, 0.7, part2Progress);
     // milk.current.position.x = THREE.MathUtils.lerp(0, -0.069, part2Progress);
@@ -319,7 +326,7 @@ export default function Model({ progress, props }) {
     <Center>
       <group
         rotation={[-2.36, -0.97, -0.363]}
-        position={[-4.59, -3.11, 4.3]}
+        position={[-4.71, -3.11, 4.75]}
         scale={[24, 24, 24]}
         {...props}
         ref={modelRef}
