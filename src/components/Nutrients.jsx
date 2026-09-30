@@ -1,10 +1,10 @@
 import { cn } from "cn";
-import React, { useEffect, useLayoutEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
-// gsap.registerPlugin(MotionPathPlugin);
+gsap.registerPlugin(MotionPathPlugin);
 
 const nutrients = [
   {
@@ -34,28 +34,32 @@ const Nutrients = () => {
   const containerRef = useRef(null);
 
   useEffect(() => {
+    if (!boxesRef.current) return;
+
     const ctx = gsap.context(() => {
-      boxesRef.current.forEach((box) => {
+      boxesRef.current.forEach((box, i) => {
         if (!box) return;
 
         const side = box.dataset.side;
+        const path = side === "left" ? "#left-path" : "#right-path";
 
-        const path = side === "left" ? "#leftPath" : "#rightPath";
+        const offset = i * 0.08;
+        const positions = [0.4, 0.6, 0.8, 1];
 
         gsap.to(box, {
           motionPath: {
             path,
             align: path,
             alignOrigin: [0.5, 0.5],
-            start: 0,
-            end: 1,
+            start: positions[i],
+            end: 0,
           },
 
           ease: "none",
 
           scrollTrigger: {
             trigger: containerRef.current,
-            start: "top top",
+            start: "70% 50%",
             end: "bottom bottom",
             scrub: true,
           },
@@ -65,12 +69,14 @@ const Nutrients = () => {
 
     return () => ctx.revert();
   }, []);
-
   return (
-    <div className="space-y-4 relative border-2 border-red-500 h-[140vh] w-[80%] mx-auto">
+    <div
+      className="space-y-4 relative  h-[400vh] w-[80%] mx-auto border-2 border-red-500"
+      ref={containerRef}
+    >
       {/* Left arc */}
       <svg
-        className="absolute inset-0 w-full h-full"
+        className="absolute  w-full top-1/2 h-[1000px]"
         viewBox="0 0 2416 4547"
         preserveAspectRatio="none"
         fill="none"
@@ -87,16 +93,18 @@ const Nutrients = () => {
 
       {/* Right arc */}
       <svg
-        className="absolute inset-0 w-full h-full"
+        className="absolute  w-full h-[1000px] top-1/2 right-0"
         viewBox="0 0 2412 4547"
         preserveAspectRatio="none"
         fill="none"
       >
         <path
           id="right-path"
-          d="M0 4543.5
-         C0 4543.5 2412 4543.5 2412 2273.5
-         C2412 3.5 0 3.5 0 3.5"
+          d="
+    M3.5 3.5
+    C3.5 3.5 2415.5 3.49989 2415.5 2273.5
+    C2415.5 4543.5 3.5 4543.5 3.5 4543.5
+  "
           stroke="black"
           strokeWidth="7"
         />
