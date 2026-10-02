@@ -79,10 +79,11 @@ export default function Model({ progress, props }) {
     if (!modelRef.current) return;
     if (settings.current.manual) return;
 
-    const part1Progress = getProgress(3, 25, progress);
+    const part1Progress = getProgress(3, 20, progress);
 
-    const part2Progress = getProgress(25, 55, progress);
-    const part3Progress = getProgress(30, 60, progress);
+    const part2Progress = getProgress(20, 40, progress);
+    const part3Progress = getProgress(30, 50, progress);
+    const part4Progress = getProgress(60, 70, progress);
 
     // Smooth overall progress
     const p = THREE.MathUtils.smoothstep(part1Progress, 0, 1);
@@ -93,39 +94,35 @@ export default function Model({ progress, props }) {
     modelRef.current.rotation.y = THREE.MathUtils.lerp(-0.97, -1.35, p);
     modelRef.current.rotation.x = THREE.MathUtils.lerp(-2.36, -1.8, p);
 
-    // -----------------------------
-    // Z starts halfway through
-    // -----------------------------
-
     // Keep X fixed
     modelRef.current.rotation.z = -0.363;
 
-    // -------------------------
-    // 30% → 50%
-    // SPLIT
-    // -------------------------
+    topRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.56, part2Progress);
+    // bottomRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.9, part3Progress);
+    bottomRef.current.rotation.y = THREE.MathUtils.lerp(
+      0,
+      -0.053,
+      part3Progress,
+    );
+    // bottomRef.current.rotation.z = THREE.MathUtils.lerp(0, -0.2, part3Progress);
+    bottomRef.current.rotation.x = THREE.MathUtils.lerp(0, 3.14, part3Progress);
 
-    // const splitProgress = THREE.MathUtils.clamp((progress - 0.3) / 0.2, 0, 1);
+    bottomRef.current.scale.x = THREE.MathUtils.lerp(1, 1.2, part2Progress);
+    bottomRef.current.scale.y = THREE.MathUtils.lerp(1, 1.2, part2Progress);
+    bottomRef.current.scale.z = THREE.MathUtils.lerp(1, 1.2, part2Progress);
 
-    // topRef.current.position.x = THREE.MathUtils.lerp(0, -0.05, part2Progress);
-    topRef.current.rotation.x = THREE.MathUtils.lerp(0, 3.83, part2Progress);
-    bottomRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.9, part3Progress);
-    bottomRef.current.rotation.y = THREE.MathUtils.lerp(0, -0.053, part3Progress);
-    bottomRef.current.rotation.z = THREE.MathUtils.lerp(0, -0.20, part3Progress);
-   bottomRef.current.scale.x = THREE.MathUtils.lerp(1, 1.5  , part3Progress);
-bottomRef.current.scale.y = THREE.MathUtils.lerp(1, 1.5 , part3Progress);
-bottomRef.current.scale.z = THREE.MathUtils.lerp(1, 1.5 , part3Progress);
-
-
-    // bottomRef.current.position.z = THREE.MathUtils.lerp(
-    //   0,
-    //   0.083,
-    //   part3Progress,
+    bottomRef.current.rotation.y = THREE.MathUtils.lerp(
+      -0.053,
+      -1.149,
+      part4Progress,
+    );
+    // bottomRef.current.rotation.x = THREE.MathUtils.lerp(
+    //   3.14,
+    //   0.41,
+    //   part4Progress,
     // );
 
     topRef.current.position.x = THREE.MathUtils.lerp(0, 0.7, part2Progress);
-    // milk.current.position.x = THREE.MathUtils.lerp(0, -0.069, part2Progress);
-    // milk.current.position.x = THREE.MathUtils.lerp(0, -0.053, part2Progress);
   };
 
   useEffect(() => {

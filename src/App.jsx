@@ -65,9 +65,15 @@ function App() {
         <section className="h-screen">
           <h1>Section 2</h1>
         </section>
+        {/* <section className="h-screen">
+          <h1>Section 3</h1>
+        </section>
         <section className="h-screen">
           <h1>Section 3</h1>
         </section>
+        <section className="h-screen">
+          <h1>Section 3</h1>
+        </section> */}
         {/* <section>
         <h1>Section 4</h1>
       </section>

@@ -59,9 +59,10 @@ const Nutrients = () => {
 
           scrollTrigger: {
             trigger: containerRef.current,
-            start: "70% 50%",
-            end: "bottom bottom",
+            start: "60% bottom",
+            end: "+=900",
             scrub: true,
+            markers: true,
           },
         });
       });
@@ -71,12 +72,13 @@ const Nutrients = () => {
   }, []);
   return (
     <div
-      className="space-y-4 relative  h-[400vh] w-[80%] mx-auto border-2 border-red-500"
+      className="space-y-4 relative  h-[300vh] w-[80%] mx-auto "
       ref={containerRef}
     >
       {/* Left arc */}
       <svg
-        className="absolute  w-full top-1/2 h-[1000px]"
+        // ref={containerRef}
+        className="absolute  w-full top-[35%] h-[1300px]"
         viewBox="0 0 2416 4547"
         preserveAspectRatio="none"
         fill="none"
@@ -87,13 +89,13 @@ const Nutrients = () => {
          C2415.5 3.5 3.4999 3.49989 3.4999 2273.5
          C3.4999 4543.5 2415.5 4543.5 2415.5 4543.5"
           stroke="black"
-          strokeWidth="7"
+          strokeWidth="0"
         />
       </svg>
 
       {/* Right arc */}
       <svg
-        className="absolute  w-full h-[1000px] top-1/2 right-0"
+        className="absolute  w-full h-[1300px] top-[35%] right-20"
         viewBox="0 0 2412 4547"
         preserveAspectRatio="none"
         fill="none"
@@ -106,7 +108,7 @@ const Nutrients = () => {
     C2415.5 4543.5 3.5 4543.5 3.5 4543.5
   "
           stroke="black"
-          strokeWidth="7"
+          strokeWidth="0"
         />
       </svg>
 
