@@ -75,6 +75,14 @@ export default function Model({ progress, props }) {
     milkPositionZ: 0,
   });
 
+  //   const getProgress = (start, end, progress) => {
+  //   return THREE.MathUtils.clamp(
+  //     (progress - start / 100) / ((end - start) / 100),
+  //     0,
+  //     1,
+  //   );
+  // };
+
   const animSequence = () => {
     if (!modelRef.current) return;
     if (settings.current.manual) return;
@@ -105,6 +113,7 @@ export default function Model({ progress, props }) {
       part3Progress,
     );
     // bottomRef.current.rotation.z = THREE.MathUtils.lerp(0, -0.2, part3Progress);
+    topRef.current.position.x = THREE.MathUtils.lerp(0, 0.7, part2Progress);
     bottomRef.current.rotation.x = THREE.MathUtils.lerp(0, 3.14, part3Progress);
 
     bottomRef.current.scale.x = THREE.MathUtils.lerp(1, 1.2, part2Progress);
@@ -113,16 +122,19 @@ export default function Model({ progress, props }) {
 
     bottomRef.current.rotation.y = THREE.MathUtils.lerp(
       -0.053,
-      -1.149,
+      -1.23,
       part4Progress,
     );
-    // bottomRef.current.rotation.x = THREE.MathUtils.lerp(
-    //   3.14,
-    //   0.41,
+    // bottomRef.current.rotation.z = THREE.MathUtils.lerp(
+    //   -0.2,
+    //   -0.8,
     //   part4Progress,
     // );
-
-    topRef.current.position.x = THREE.MathUtils.lerp(0, 0.7, part2Progress);
+    // bottomRef.current.rotation.x = THREE.MathUtils.lerp(
+    //   3.14,
+    //   1.02,
+    //   part4Progress,
+    // );
   };
 
   useEffect(() => {
