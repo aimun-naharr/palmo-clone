@@ -11,6 +11,8 @@ import {
   milkVertex,
 } from "../../../shaders/milk";
 import { createMilkSimulation } from "../../../shaders/buffers/milkSimulation";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 const getProgress = (start, end, progress) => {
   return THREE.MathUtils.clamp(
@@ -27,6 +29,7 @@ export default function Model({ progress, props }) {
   const milk = useRef(null);
   const modelRef = useRef(null);
   const milkMaterial = useRef(null);
+  const tl = useRef(null);
 
   // Offscreen Shadertoy buffers (ripples -> fluid -> turbulence)
   const milkSim = useMemo(() => createMilkSimulation(512), []);
@@ -75,76 +78,164 @@ export default function Model({ progress, props }) {
     milkPositionZ: 0,
   });
 
-  //   const getProgress = (start, end, progress) => {
-  //   return THREE.MathUtils.clamp(
-  //     (progress - start / 100) / ((end - start) / 100),
+  // const animSequence = () => {
+  //   if (!modelRef.current) return;
+  //   if (settings.current.manual) return;
+
+  //   const part1Progress = getProgress(3, 20, progress);
+
+  //   const part2Progress = getProgress(20, 40, progress);
+  //   const part3Progress = getProgress(30, 50, progress);
+  //   const part4Progress = getProgress(60, 70, progress);
+
+  //   // Smooth overall progress
+  //   const p = THREE.MathUtils.smoothstep(part1Progress, 0, 1);
+
+  //   // -----------------------------
+  //   // Y rotation
+  //   // -----------------------------
+  //   modelRef.current.rotation.y = THREE.MathUtils.lerp(-0.97, -1.35, p);
+  //   modelRef.current.rotation.x = THREE.MathUtils.lerp(-2.36, -1.8, p);
+
+  //   // Keep X fixed
+  //   modelRef.current.rotation.z = -0.363;
+
+  //   topRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.56, part2Progress);
+  //   // bottomRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.9, part3Progress);
+  //   bottomRef.current.rotation.y = THREE.MathUtils.lerp(
   //     0,
-  //     1,
+  //     -0.053,
+  //     part3Progress,
   //   );
+  //   // bottomRef.current.rotation.z = THREE.MathUtils.lerp(0, -0.2, part3Progress);
+  //   topRef.current.position.x = THREE.MathUtils.lerp(0, 0.7, part2Progress);
+  //   bottomRef.current.rotation.x = THREE.MathUtils.lerp(0, 3.14, part3Progress);
+
+  //   bottomRef.current.scale.x = THREE.MathUtils.lerp(1, 1.2, part2Progress);
+  //   bottomRef.current.scale.y = THREE.MathUtils.lerp(1, 1.2, part2Progress);
+  //   bottomRef.current.scale.z = THREE.MathUtils.lerp(1, 1.2, part2Progress);
+
+  //   bottomRef.current.rotation.y = THREE.MathUtils.lerp(
+  //     -0.053,
+  //     -1.23,
+  //     part4Progress,
+  //   );
+  //   // bottomRef.current.rotation.z = THREE.MathUtils.lerp(
+  //   //   -0.2,
+  //   //   -0.8,
+  //   //   part4Progress,
+  //   // );
+  //   // bottomRef.current.rotation.x = THREE.MathUtils.lerp(
+  //   //   3.14,
+  //   //   1.02,
+  //   //   part4Progress,
+  //   // );
   // };
 
-  const animSequence = () => {
-    if (!modelRef.current) return;
-    if (settings.current.manual) return;
-
-    const part1Progress = getProgress(3, 20, progress);
-
-    const part2Progress = getProgress(20, 40, progress);
-    const part3Progress = getProgress(30, 50, progress);
-    const part4Progress = getProgress(60, 70, progress);
-
-    // Smooth overall progress
-    const p = THREE.MathUtils.smoothstep(part1Progress, 0, 1);
-
-    // -----------------------------
-    // Y rotation
-    // -----------------------------
-    modelRef.current.rotation.y = THREE.MathUtils.lerp(-0.97, -1.35, p);
-    modelRef.current.rotation.x = THREE.MathUtils.lerp(-2.36, -1.8, p);
-
-    // Keep X fixed
-    modelRef.current.rotation.z = -0.363;
-
-    topRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.56, part2Progress);
-    // bottomRef.current.rotation.x = THREE.MathUtils.lerp(0, 0.9, part3Progress);
-    bottomRef.current.rotation.y = THREE.MathUtils.lerp(
-      0,
-      -0.053,
-      part3Progress,
-    );
-    // bottomRef.current.rotation.z = THREE.MathUtils.lerp(0, -0.2, part3Progress);
-    topRef.current.position.x = THREE.MathUtils.lerp(0, 0.7, part2Progress);
-    bottomRef.current.rotation.x = THREE.MathUtils.lerp(0, 3.14, part3Progress);
-
-    bottomRef.current.scale.x = THREE.MathUtils.lerp(1, 1.2, part2Progress);
-    bottomRef.current.scale.y = THREE.MathUtils.lerp(1, 1.2, part2Progress);
-    bottomRef.current.scale.z = THREE.MathUtils.lerp(1, 1.2, part2Progress);
-
-    bottomRef.current.rotation.y = THREE.MathUtils.lerp(
-      -0.053,
-      -1.23,
-      part4Progress,
-    );
-    // bottomRef.current.rotation.z = THREE.MathUtils.lerp(
-    //   -0.2,
-    //   -0.8,
-    //   part4Progress,
-    // );
-    // bottomRef.current.rotation.x = THREE.MathUtils.lerp(
-    //   3.14,
-    //   1.02,
-    //   part4Progress,
-    // );
-  };
-
-  useEffect(() => {
-    animSequence();
-  }, [progress]);
+  // useEffect(() => {
+  //   animSequence();
+  // }, [progress]);
 
   // -------------------------
   // DEBUG GUI
   // -------------------------
 
+  useGSAP(() => {
+    const model = modelRef.current,
+      top = topRef.current,
+      bottom = bottomRef.current;
+    if (!model || !top || !bottom) return;
+
+    model.rotation.set(-2.36, -0.97, -0.363); // start pose
+
+    // tl.current = gsap
+    //   .timeline({ paused: true, defaults: { ease: "none" } })
+    //   // 3 → 20: model turn
+    //   .to(
+    //     model.rotation,
+    //     { x: -1.8, y: -1.35, duration: 17, ease: "sine.inOut" },
+    //     3,
+    //   )
+    //   // 20 → 40: top opens, bottom grows
+    //   .to(top.rotation, { x: 0.56, duration: 20 }, 20)
+    //   .to(top.position, { x: 0.7, duration: 20 }, 20)
+    //   .to(bottom.rotation, { x: Math.PI, y: -0.053, duration: 20 }, 20)
+
+    //   .to(bottom.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 20 }, 20)
+    //   // 30 → 50: bottom flips
+    //   .to(bottom.rotation, { x: Math.PI, y: -0.053, duration: 20 }, 30)
+    //   .to(top.position, { y: 0.083, duration: 20 }, 30)
+
+    //   // 60 → 70: bottom swings
+    //   .to(bottom.rotation, { y: -1.23, duration: 10 }, 60)
+    //   .to(bottom.rotation, { z: -0.5, duration: 10 }, 60)
+    //   .to(bottom.scale, { x: 1, y: 1, z: 1, duration: 10 }, 60)
+    //   .to(
+    //     top.rotation,
+    //     { x: 0.9, y: Math.PI * 1.3, z: -Math.PI, duration: 10 },
+    //     60,
+    //   )
+    //   .to(top.position, { y: 0.01, x: 0.003, duration: 10 }, 60);
+
+    tl.current = gsap
+      .timeline({ paused: true, defaults: { ease: "none" } })
+
+      // 3 → 20: model turn
+      .to(
+        model.rotation,
+        { x: -1.8, y: -1.35, duration: 17, ease: "sine.inOut" },
+        3,
+      )
+
+      // 20 → 40: top opens, bottom grows & flips
+      .to(top.rotation, { x: 0.56, duration: 20 }, 20)
+      .to(top.position, { x: 0.7, duration: 20 }, 20)
+      .to(bottom.rotation, { x: Math.PI, y: -0.053, duration: 20 }, 20)
+      .to(bottom.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 20 }, 20)
+
+      // 30 → 50: top drifts up
+      .to(top.position, { y: 0.083, duration: 20 }, 30)
+
+      // 60 → 70: close — everything returns to rest
+      // ONE tween per target object so GSAP doesn't overwrite
+      // 60 → 70: close & tilt into final pose
+      .to(
+        model.rotation,
+        { x: -2.0, y: -0.45, z: -0.25, duration: 10, ease: "power2.inOut" },
+        60,
+      )
+      .to(
+        bottom.rotation,
+        { x: 0, y: 0, z: 0, duration: 10, ease: "power2.inOut" },
+        60,
+      )
+      .to(
+        bottom.scale,
+        { x: 1, y: 1, z: 1, duration: 10, ease: "power2.inOut" },
+        60,
+      )
+      .to(
+        top.rotation,
+        { x: 0, y: 0, z: 0, duration: 10, ease: "power2.inOut" },
+        70,
+      )
+      .to(
+        top.position,
+        { x: 0, y: 0, z: 0, duration: 10, ease: "power2.inOut" },
+        70,
+      );
+  }, []);
+
+  // Scrub with progress (0..1)
+  useGSAP(() => {
+    if (!tl.current || settings.current.manual) return;
+    gsap.to(tl.current, {
+      time: progress * 100,
+      duration: 0.5,
+      ease: "power2.out",
+      overwrite: true,
+    });
+  }, [progress]);
   useFrame((state, delta) => {
     milkSim.update(state.gl, state.clock.elapsedTime, delta);
     // The fluid buffer ping-pongs, so rebind the freshly written one
