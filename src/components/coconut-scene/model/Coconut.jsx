@@ -24,11 +24,13 @@ const getProgress = (start, end, progress) => {
 
 export default function Model({ progress, props }) {
   const { nodes, materials } = useGLTF("/coconut.glb");
+  const { scene: canScene } = useGLTF("/can1.glb");
   const topRef = useRef(null);
   const bottomRef = useRef(null);
   const milk = useRef(null);
   const modelRef = useRef(null);
   const milkMaterial = useRef(null);
+  const canNodeRef = useRef(null);
   const tl = useRef(null);
 
   // Offscreen Shadertoy buffers (ripples -> fluid -> turbulence)
@@ -148,35 +150,6 @@ export default function Model({ progress, props }) {
 
     model.rotation.set(-2.36, -0.97, -0.363); // start pose
 
-    // tl.current = gsap
-    //   .timeline({ paused: true, defaults: { ease: "none" } })
-    //   // 3 → 20: model turn
-    //   .to(
-    //     model.rotation,
-    //     { x: -1.8, y: -1.35, duration: 17, ease: "sine.inOut" },
-    //     3,
-    //   )
-    //   // 20 → 40: top opens, bottom grows
-    //   .to(top.rotation, { x: 0.56, duration: 20 }, 20)
-    //   .to(top.position, { x: 0.7, duration: 20 }, 20)
-    //   .to(bottom.rotation, { x: Math.PI, y: -0.053, duration: 20 }, 20)
-
-    //   .to(bottom.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 20 }, 20)
-    //   // 30 → 50: bottom flips
-    //   .to(bottom.rotation, { x: Math.PI, y: -0.053, duration: 20 }, 30)
-    //   .to(top.position, { y: 0.083, duration: 20 }, 30)
-
-    //   // 60 → 70: bottom swings
-    //   .to(bottom.rotation, { y: -1.23, duration: 10 }, 60)
-    //   .to(bottom.rotation, { z: -0.5, duration: 10 }, 60)
-    //   .to(bottom.scale, { x: 1, y: 1, z: 1, duration: 10 }, 60)
-    //   .to(
-    //     top.rotation,
-    //     { x: 0.9, y: Math.PI * 1.3, z: -Math.PI, duration: 10 },
-    //     60,
-    //   )
-    //   .to(top.position, { y: 0.01, x: 0.003, duration: 10 }, 60);
-
     tl.current = gsap
       .timeline({ paused: true, defaults: { ease: "none" } })
 
@@ -188,7 +161,7 @@ export default function Model({ progress, props }) {
       )
 
       // 20 → 40: top opens, bottom grows & flips
-      .to(top.rotation, { x: 0.56, duration: 20 }, 20)
+      .to(top.rotation, { x: Math.PI * 2, duration: 20 }, 20)
       .to(top.position, { x: 0.7, duration: 20 }, 20)
       .to(bottom.rotation, { x: Math.PI, y: -0.053, duration: 20 }, 20)
       .to(bottom.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 20 }, 20)
@@ -199,31 +172,14 @@ export default function Model({ progress, props }) {
       // 60 → 70: close — everything returns to rest
       // ONE tween per target object so GSAP doesn't overwrite
       // 60 → 70: close & tilt into final pose
-      .to(
-        model.rotation,
-        { x: -2.0, y: -0.45, z: -0.25, duration: 10, ease: "power2.inOut" },
-        60,
-      )
-      .to(
-        bottom.rotation,
-        { x: 0, y: 0, z: 0, duration: 10, ease: "power2.inOut" },
-        60,
-      )
-      .to(
-        bottom.scale,
-        { x: 1, y: 1, z: 1, duration: 10, ease: "power2.inOut" },
-        60,
-      )
-      .to(
-        top.rotation,
-        { x: 0, y: 0, z: 0, duration: 10, ease: "power2.inOut" },
-        70,
-      )
-      .to(
-        top.position,
-        { x: 0, y: 0, z: 0, duration: 10, ease: "power2.inOut" },
-        70,
-      );
+      .to(model.rotation, { x: -3.0, y: -0.45, z: -0.25, duration: 10 }, 60)
+      .to(model.scale, { x: 20, y: 20, z: 20, duration: 10 }, 60)
+
+      .to(bottom.rotation, { x: 0, y: 0, z: 0, duration: 10 }, 60)
+      .to(bottom.scale, { x: 1, y: 1, z: 1, duration: 10 }, 60)
+      .to(top.rotation, { x: 0, y: 0, z: 0, duration: 10 }, 60)
+      .to(top.position, { x: 0, y: 0, z: 0, duration: 10 }, 60)
+      .to(model.rotation, { x: -3.5, y: -0.8, z: -0.5, duration: 20 }, 70);
   }, []);
 
   // Scrub with progress (0..1)
@@ -432,6 +388,10 @@ export default function Model({ progress, props }) {
         ref={modelRef}
         dispose={null}
       >
+        {/* can */}
+        <group position={[0, 0, 0]} scale={0} ref={canNodeRef}>
+          <primitive object={canScene} />
+        </group>
         <group ref={bottomRef}>
           <mesh
             castShadow

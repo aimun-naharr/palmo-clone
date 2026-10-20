@@ -23,7 +23,7 @@ const CoconutScene = ({ progress }) => {
         makeDefault
         position={[-2.9, 8.3, -3.0]}
       />
-      <ambientLight intensity={1} />
+      <ambientLight intensity={0.5} />
       <Environment preset="night" />
       <directionalLight position={[-15, 5, 5]} intensity={3} />
       {/* <axesHelper args={[500]} /> */}
