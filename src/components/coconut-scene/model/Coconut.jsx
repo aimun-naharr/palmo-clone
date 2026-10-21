@@ -152,24 +152,24 @@ export default function Model({ progress, props }) {
         { x: 0.05, y: 0.05, z: 0.05, duration: 10, ease: "back.out(1.6)" },
         87,
       )
-      .fromTo(
-        canScene.rotation,
-        { y: -Math.PI / 2, z: 0 },
-        { y: 0, z: Math.PI / 2, duration: 12, ease: "power3.out" },
-        87,
-      )
 
       // 92 → 100: halves keep drifting away and shrink to nothing
-      .to(top.position, { x: 0.2, duration: 8, ease: "power1.in" }, 92)
-      .to(bottom.position, { x: -0.2, duration: 8, ease: "power1.in" }, 92)
+      .to(top.position, { x: 0.3, duration: 8, ease: "power1.in" }, 92)
+      .to(bottom.position, { x: -0.3, duration: 8, ease: "power1.in" }, 92)
       .to(
         top.scale,
-        { x: 0.0001, y: 0.0001, z: 0.0001, duration: 8, ease: "back.in(1.4)" },
+        { x: 0, y: 0, z: 0, duration: 8, ease: "back.in(1.4)" },
         92,
       )
       .to(
         bottom.scale,
-        { x: 0.0001, y: 0.0001, z: 0.0001, duration: 8, ease: "back.in(1.4)" },
+        { x: 0, y: 0, z: 0, duration: 8, ease: "back.in(1.4)" },
+        92,
+      )
+      .fromTo(
+        canScene.rotation,
+        { y: 0 },
+        { y: Math.PI * 2, duration: 12, ease: "power3.out" },
         92,
       );
   }, []);
