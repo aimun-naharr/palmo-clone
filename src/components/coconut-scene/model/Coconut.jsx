@@ -35,6 +35,12 @@ export default function Model({ progress, props }) {
   const canTexture = useTexture("/coconutWhite.webp");
   // Scroll drives the intensity; useFrame turns it into a live tremble
   // so the coconut keeps shaking even when the user pauses scrolling.
+  useEffect(() => {
+    canTexture.colorSpace = THREE.SRGBColorSpace;
+    canTexture.flipY = true;
+    canTexture.anisotropy = 16;
+    canTexture.needsUpdate = true;
+  }, [canTexture]);
   const shake = useRef({ intensity: 0, smoothed: 0 });
   const shakeAxes = useMemo(
     () => ({ right: new THREE.Vector3(), up: new THREE.Vector3() }),
@@ -88,6 +94,25 @@ export default function Model({ progress, props }) {
     milkPositionY: 0,
     milkPositionZ: 0,
   });
+
+  const canModel = useMemo(() => {
+    const clonedScene = canScene.clone();
+
+    clonedScene.traverse((child) => {
+      if (child.isMesh && child.name === "Shell") {
+        const material = child.material.clone();
+
+        material.map = canTexture;
+        material.roughness = 0.35;
+        material.metalness = 0.1;
+        material.needsUpdate = true;
+
+        child.material = material;
+      }
+    });
+
+    return clonedScene;
+  }, [canScene, canTexture]);
 
   useGSAP(() => {
     const model = modelRef.current,
@@ -167,9 +192,9 @@ export default function Model({ progress, props }) {
         92,
       )
       .fromTo(
-        canScene.rotation,
+        canModel.rotation,
         { y: 0 },
-        { y: Math.PI * 2, duration: 12, ease: "power3.out" },
+        { y: Math.PI / 2.5, duration: 12, ease: "power3.out" },
         92,
       );
   }, []);
@@ -212,194 +237,180 @@ export default function Model({ progress, props }) {
     const local = milk.current.worldToLocal(e.point.clone());
     milkSim.setPointer(getMilkDiscUv(milkDisc, local));
   };
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
+  // useEffect(() => {
+  //   if (!import.meta.env.DEV) return;
 
-    const s = settings.current;
-    const gui = new GUI({ title: "Coconut" });
+  //   const s = settings.current;
+  //   const gui = new GUI({ title: "Coconut" });
 
-    // Seed the sliders from whatever the model currently has.
-    s.rotationX = modelRef.current.rotation.x;
-    s.rotationY = modelRef.current.rotation.y;
-    s.rotationZ = modelRef.current.rotation.z;
-    s.positionX = modelRef.current.position.x;
-    s.positionY = modelRef.current.position.y;
-    s.positionZ = modelRef.current.position.z;
-    s.topRotationX = topRef.current.rotation.x;
-    s.topRotationY = topRef.current.rotation.y;
-    s.topRotationZ = topRef.current.rotation.z;
-    s.bottomRotationX = bottomRef.current.rotation.x;
-    s.bottomRotationY = bottomRef.current.rotation.y;
-    s.bottomRotationZ = bottomRef.current.rotation.z;
-    s.topPositionX = topRef.current.position.x;
-    s.topPositionY = topRef.current.position.y;
-    s.topPositionZ = topRef.current.position.z;
-    s.bottomPositionX = bottomRef.current.position.x;
-    s.bottomPositionY = bottomRef.current.position.y;
-    s.bottomPositionZ = bottomRef.current.position.z;
-    s.milkRotationX = milk.current.rotation.x;
-    s.milkRotationY = milk.current.rotation.y;
-    s.milkRotationZ = milk.current.rotation.z;
-    s.milkPositionX = milk.current.position.x;
-    s.milkPositionY = milk.current.position.y;
-    s.milkPositionZ = milk.current.position.z;
+  //   // Seed the sliders from whatever the model currently has.
+  //   s.rotationX = modelRef.current.rotation.x;
+  //   s.rotationY = modelRef.current.rotation.y;
+  //   s.rotationZ = modelRef.current.rotation.z;
+  //   s.positionX = modelRef.current.position.x;
+  //   s.positionY = modelRef.current.position.y;
+  //   s.positionZ = modelRef.current.position.z;
+  //   s.topRotationX = topRef.current.rotation.x;
+  //   s.topRotationY = topRef.current.rotation.y;
+  //   s.topRotationZ = topRef.current.rotation.z;
+  //   s.bottomRotationX = bottomRef.current.rotation.x;
+  //   s.bottomRotationY = bottomRef.current.rotation.y;
+  //   s.bottomRotationZ = bottomRef.current.rotation.z;
+  //   s.topPositionX = topRef.current.position.x;
+  //   s.topPositionY = topRef.current.position.y;
+  //   s.topPositionZ = topRef.current.position.z;
+  //   s.bottomPositionX = bottomRef.current.position.x;
+  //   s.bottomPositionY = bottomRef.current.position.y;
+  //   s.bottomPositionZ = bottomRef.current.position.z;
+  //   s.milkRotationX = milk.current.rotation.x;
+  //   s.milkRotationY = milk.current.rotation.y;
+  //   s.milkRotationZ = milk.current.rotation.z;
+  //   s.milkPositionX = milk.current.position.x;
+  //   s.milkPositionY = milk.current.position.y;
+  //   s.milkPositionZ = milk.current.position.z;
 
-    gui
-      .add(s, "manual")
-      .name("manual (ignore scroll)")
-      .onChange(() => animSequence());
+  //   gui
+  //     .add(s, "manual")
+  //     .name("manual (ignore scroll)")
+  //     .onChange(() => animSequence());
 
-    const applyRotation = () => {
-      modelRef.current.rotation.set(s.rotationX, s.rotationY, s.rotationZ);
-    };
+  //   const applyRotation = () => {
+  //     modelRef.current.rotation.set(s.rotationX, s.rotationY, s.rotationZ);
+  //   };
 
-    const applyTopRotation = () => {
-      topRef.current.rotation.set(
-        s.topRotationX,
-        s.topRotationY,
-        s.topRotationZ,
-      );
-    };
+  //   const applyTopRotation = () => {
+  //     topRef.current.rotation.set(
+  //       s.topRotationX,
+  //       s.topRotationY,
+  //       s.topRotationZ,
+  //     );
+  //   };
 
-    const applyBottomRotation = () => {
-      bottomRef.current.rotation.set(
-        s.bottomRotationX,
-        s.bottomRotationY,
-        s.bottomRotationZ,
-      );
-    };
+  //   const applyBottomRotation = () => {
+  //     bottomRef.current.rotation.set(
+  //       s.bottomRotationX,
+  //       s.bottomRotationY,
+  //       s.bottomRotationZ,
+  //     );
+  //   };
 
-    const applyTopPosition = () => {
-      topRef.current.position.set(
-        s.topPositionX,
-        s.topPositionY,
-        s.topPositionZ,
-      );
-    };
+  //   const applyTopPosition = () => {
+  //     topRef.current.position.set(
+  //       s.topPositionX,
+  //       s.topPositionY,
+  //       s.topPositionZ,
+  //     );
+  //   };
 
-    const applyBottomPosition = () => {
-      bottomRef.current.position.set(
-        s.bottomPositionX,
-        s.bottomPositionY,
-        s.bottomPositionZ,
-      );
-    };
+  //   const applyBottomPosition = () => {
+  //     bottomRef.current.position.set(
+  //       s.bottomPositionX,
+  //       s.bottomPositionY,
+  //       s.bottomPositionZ,
+  //     );
+  //   };
 
-    const applyMilkRotation = () => {
-      milk.current.rotation.set(
-        s.milkRotationX,
-        s.milkRotationY,
-        s.milkRotationZ,
-      );
-    };
+  //   const applyMilkRotation = () => {
+  //     milk.current.rotation.set(
+  //       s.milkRotationX,
+  //       s.milkRotationY,
+  //       s.milkRotationZ,
+  //     );
+  //   };
 
-    const applyMilkPosition = () => {
-      milk.current.position.set(
-        s.milkPositionX,
-        s.milkPositionY,
-        s.milkPositionZ,
-      );
-    };
+  //   const applyMilkPosition = () => {
+  //     milk.current.position.set(
+  //       s.milkPositionX,
+  //       s.milkPositionY,
+  //       s.milkPositionZ,
+  //     );
+  //   };
 
-    const applyPosition = () => {
-      modelRef.current.position.set(s.positionX, s.positionY, s.positionZ);
-    };
+  //   const applyPosition = () => {
+  //     modelRef.current.position.set(s.positionX, s.positionY, s.positionZ);
+  //   };
 
-    const addRotationFolder = (label, prefix, apply) => {
-      const folder = gui.addFolder(label);
-      ["X", "Y", "Z"].forEach((axis) => {
-        folder
-          .add(s, `${prefix}${axis}`, -Math.PI * 2, Math.PI * 2, 0.01)
-          .name(axis.toLowerCase())
-          .listen()
-          .onChange(apply);
-      });
-    };
+  //   const addRotationFolder = (label, prefix, apply) => {
+  //     const folder = gui.addFolder(label);
+  //     ["X", "Y", "Z"].forEach((axis) => {
+  //       folder
+  //         .add(s, `${prefix}${axis}`, -Math.PI * 2, Math.PI * 2, 0.01)
+  //         .name(axis.toLowerCase())
+  //         .listen()
+  //         .onChange(apply);
+  //     });
+  //   };
 
-    addRotationFolder("Rotation", "rotation", applyRotation);
-    addRotationFolder("Rotation Top", "topRotation", applyTopRotation);
-    addRotationFolder("Rotation Bottom", "bottomRotation", applyBottomRotation);
+  //   addRotationFolder("Rotation", "rotation", applyRotation);
+  //   addRotationFolder("Rotation Top", "topRotation", applyTopRotation);
+  //   addRotationFolder("Rotation Bottom", "bottomRotation", applyBottomRotation);
 
-    const position = gui.addFolder("Position");
-    ["positionX", "positionY", "positionZ"].forEach((key) => {
-      position
-        .add(s, key, -5, 5, 0.01)
-        .name(key.slice(-1).toLowerCase())
-        .listen()
-        .onChange(applyPosition);
-    });
+  //   const position = gui.addFolder("Position");
+  //   ["positionX", "positionY", "positionZ"].forEach((key) => {
+  //     position
+  //       .add(s, key, -5, 5, 0.01)
+  //       .name(key.slice(-1).toLowerCase())
+  //       .listen()
+  //       .onChange(applyPosition);
+  //   });
 
-    // Top/bottom sit inside the 25x-scaled group, so small values move them a lot.
-    const addPartPositionFolder = (label, prefix, apply) => {
-      const folder = gui.addFolder(label);
-      ["X", "Y", "Z"].forEach((axis) => {
-        folder
-          .add(s, `${prefix}${axis}`, -2, 2, 0.001)
-          .name(axis.toLowerCase())
-          .listen()
-          .onChange(apply);
-      });
-    };
+  //   // Top/bottom sit inside the 25x-scaled group, so small values move them a lot.
+  //   const addPartPositionFolder = (label, prefix, apply) => {
+  //     const folder = gui.addFolder(label);
+  //     ["X", "Y", "Z"].forEach((axis) => {
+  //       folder
+  //         .add(s, `${prefix}${axis}`, -2, 2, 0.001)
+  //         .name(axis.toLowerCase())
+  //         .listen()
+  //         .onChange(apply);
+  //     });
+  //   };
 
-    addPartPositionFolder("Position Top", "topPosition", applyTopPosition);
-    addPartPositionFolder(
-      "Position Bottom",
-      "bottomPosition",
-      applyBottomPosition,
-    );
+  //   addPartPositionFolder("Position Top", "topPosition", applyTopPosition);
+  //   addPartPositionFolder(
+  //     "Position Bottom",
+  //     "bottomPosition",
+  //     applyBottomPosition,
+  //   );
 
-    addRotationFolder("Rotation Milk", "milkRotation", applyMilkRotation);
+  //   addRotationFolder("Rotation Milk", "milkRotation", applyMilkRotation);
 
-    // Milk sits inside the 25x-scaled group, so small values move it a lot.
-    const milkPosition = gui.addFolder("Position Milk");
-    ["milkPositionX", "milkPositionY", "milkPositionZ"].forEach((key) => {
-      milkPosition
-        .add(s, key, -0.5, 0.5, 0.001)
-        .name(key.slice(-1).toLowerCase())
-        .listen()
-        .onChange(applyMilkPosition);
-    });
+  //   // Milk sits inside the 25x-scaled group, so small values move it a lot.
+  //   const milkPosition = gui.addFolder("Position Milk");
+  //   ["milkPositionX", "milkPositionY", "milkPositionZ"].forEach((key) => {
+  //     milkPosition
+  //       .add(s, key, -0.5, 0.5, 0.001)
+  //       .name(key.slice(-1).toLowerCase())
+  //       .listen()
+  //       .onChange(applyMilkPosition);
+  //   });
 
-    gui
-      .add(
-        {
-          log: () =>
-            console.log(
-              `rotation={[${s.rotationX.toFixed(3)}, ${s.rotationY.toFixed(3)}, ${s.rotationZ.toFixed(3)}]}`,
-              `position={[${s.positionX.toFixed(3)}, ${s.positionY.toFixed(3)}, ${s.positionZ.toFixed(3)}]}`,
-              `topRotation={[${s.topRotationX.toFixed(3)}, ${s.topRotationY.toFixed(3)}, ${s.topRotationZ.toFixed(3)}]}`,
-              `bottomRotation={[${s.bottomRotationX.toFixed(3)}, ${s.bottomRotationY.toFixed(3)}, ${s.bottomRotationZ.toFixed(3)}]}`,
-              `topPosition={[${s.topPositionX.toFixed(3)}, ${s.topPositionY.toFixed(3)}, ${s.topPositionZ.toFixed(3)}]}`,
-              `bottomPosition={[${s.bottomPositionX.toFixed(3)}, ${s.bottomPositionY.toFixed(3)}, ${s.bottomPositionZ.toFixed(3)}]}`,
-              `milkRotation={[${s.milkRotationX.toFixed(3)}, ${s.milkRotationY.toFixed(3)}, ${s.milkRotationZ.toFixed(3)}]}`,
-              `milkPosition={[${s.milkPositionX.toFixed(3)}, ${s.milkPositionY.toFixed(3)}, ${s.milkPositionZ.toFixed(3)}]}`,
-            ),
-        },
-        "log",
-      )
-      .name("log values");
+  //   gui
+  //     .add(
+  //       {
+  //         log: () =>
+  //           console.log(
+  //             `rotation={[${s.rotationX.toFixed(3)}, ${s.rotationY.toFixed(3)}, ${s.rotationZ.toFixed(3)}]}`,
+  //             `position={[${s.positionX.toFixed(3)}, ${s.positionY.toFixed(3)}, ${s.positionZ.toFixed(3)}]}`,
+  //             `topRotation={[${s.topRotationX.toFixed(3)}, ${s.topRotationY.toFixed(3)}, ${s.topRotationZ.toFixed(3)}]}`,
+  //             `bottomRotation={[${s.bottomRotationX.toFixed(3)}, ${s.bottomRotationY.toFixed(3)}, ${s.bottomRotationZ.toFixed(3)}]}`,
+  //             `topPosition={[${s.topPositionX.toFixed(3)}, ${s.topPositionY.toFixed(3)}, ${s.topPositionZ.toFixed(3)}]}`,
+  //             `bottomPosition={[${s.bottomPositionX.toFixed(3)}, ${s.bottomPositionY.toFixed(3)}, ${s.bottomPositionZ.toFixed(3)}]}`,
+  //             `milkRotation={[${s.milkRotationX.toFixed(3)}, ${s.milkRotationY.toFixed(3)}, ${s.milkRotationZ.toFixed(3)}]}`,
+  //             `milkPosition={[${s.milkPositionX.toFixed(3)}, ${s.milkPositionY.toFixed(3)}, ${s.milkPositionZ.toFixed(3)}]}`,
+  //           ),
+  //       },
+  //       "log",
+  //     )
+  //     .name("log values");
 
-    return () => gui.destroy();
-  }, []);
+  //   return () => gui.destroy();
+  // }, []);
 
   //scroll rotation=[-2.36, -1.44, -0.97]
   //scroll rotation=[-1.59, -1.44,-0.363]
 
   //milk positionx=0.065
-  const canModel = useMemo(() => {
-    const clonedScene = canScene.clone();
-
-    clonedScene.traverse((child) => {
-      console.log("child", child);
-      if (child.isMesh && child.name === "Shell") {
-        child.material = new THREE.MeshStandardMaterial({
-          map: canTexture,
-        });
-      }
-    });
-
-    return clonedScene;
-  }, [canScene, canTexture]);
   return (
     <group ref={shakeRef}>
       <Center>
