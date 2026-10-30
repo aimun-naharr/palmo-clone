@@ -62,7 +62,7 @@ const Nutrients = () => {
             start: "60% bottom",
             end: "+=900",
             scrub: true,
-            markers: true,
+            // markers: true,
           },
         });
       });
