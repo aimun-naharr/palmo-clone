@@ -10,7 +10,9 @@ import HeroCoconutTree from "./components/HeroCoconutTree";
 import Source from "./components/Source";
 import Nutrients from "./components/Nutrients";
 import Loader from "./components/Loader";
+import { SplitText } from "gsap/all";
 gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(SplitText);
 
 function App() {
   const lenisRef = useRef();
@@ -18,6 +20,41 @@ function App() {
 
   const [screenReady, setScreenReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const heroAnimTl = useRef(null);
+
+  useEffect(() => {
+    heroAnimTl.current = gsap.timeline({ paused: true });
+
+    const split = SplitText.create(".hero-title", {
+      type: "words",
+      // autoSplit: true,
+      mask: "words",
+      onSplit(self) {
+        console.log("self", self);
+        const animation = gsap.from(self.words, {
+          yPercent: 100,
+          opacity: 0,
+          duration: 1,
+          stagger: 0.1,
+
+          rotate: 10,
+          ease: "power3.out",
+          // paused: true,
+        });
+
+        heroAnimTl.current.clear();
+        heroAnimTl.current.add(animation, 0);
+        // heroAnimTl.current.play();
+
+        return animation;
+      },
+    });
+
+    return () => {
+      split.revert();
+      heroAnimTl.current?.kill();
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -58,6 +95,7 @@ function App() {
 
   const handleOnComplete = () => {
     setIsLoading(false);
+    heroAnimTl.current.play();
     // setTime
   };
 
