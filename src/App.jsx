@@ -17,6 +17,7 @@ function App() {
   const [animProgress, setAnimProgress] = useState(0);
 
   const [screenReady, setScreenReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -55,11 +56,17 @@ function App() {
     return () => ctx.revert();
   }, []);
 
-  const handleOnComplete = () => {};
+  const handleOnComplete = () => {
+    setIsLoading(false);
+    // setTime
+  };
 
   return (
     <>
-      {/* <main className="relative border overflow-x-hidden">
+      {isLoading ? (
+        <Loader sceneReady={screenReady} onComplete={handleOnComplete} />
+      ) : null}
+      <main className="relative  overflow-x-hidden">
         <div className=" fixed w-full h-screen  model-section">
           <Canvas>
             <CoconutScene progress={animProgress} />
@@ -79,8 +86,7 @@ function App() {
             <h1>Section 2</h1>
           </section>
         </div>
-      </main> */}
-      <Loader sceneReady={screenReady} onComplete={handleOnComplete} />
+      </main>
     </>
   );
 }
