@@ -120,9 +120,7 @@ function App() {
           <HeroSection />
           <Source />
           <Nutrients />
-          <section className="h-screen">
-            <h1>Section 2</h1>
-          </section>
+          <section className="h-screen">{/* <h1>Section 2</h1> */}</section>
         </div>
       </main>
     </>

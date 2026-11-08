@@ -212,6 +212,7 @@ const Loader = ({ sceneReady = true, onComplete }) => {
               </div>
             </div>
           ))}
+          <span className="">%</span>
         </div>
       </div>
       {/* <div
